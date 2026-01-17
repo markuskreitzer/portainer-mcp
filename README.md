@@ -27,6 +27,8 @@ It is currently designed to work with a Portainer administrator API token.
 
 ## Installation
 
+### Option 1: Download Pre-built Binaries
+
 You can download pre-built binaries for Linux (amd64, arm64) and macOS (arm64) from the [**Latest Release Page**](https://github.com/portainer/portainer-mcp/releases/latest). Find the appropriate archive for your operating system and architecture under the "Assets" section.
 
 **Download the archive:**
@@ -65,20 +67,109 @@ This will extract the `portainer-mcp` executable.
 **Move the executable:**
 Move the executable to a location in your `$PATH` (e.g., `/usr/local/bin`) or note its location for the configuration step below.
 
-# Usage
+### Option 2: Build from Source
 
-With Claude Desktop, configure it like so:
+If you prefer to build from source or want to contribute to development, follow these steps.
 
+#### Prerequisites
+
+- **Go 1.24.2 or later** - [Download Go](https://go.dev/dl/)
+- **Make** - Usually pre-installed on macOS/Linux. On Windows, use [Make for Windows](https://gnuwin32.sourceforge.net/packages/make.htm) or WSL.
+- **Git** - For cloning the repository
+
+#### Build Steps
+
+1. **Clone the repository:**
+
+```bash
+git clone https://github.com/portainer/portainer-mcp.git
+cd portainer-mcp
 ```
+
+2. **Build the binary:**
+
+```bash
+make build
+```
+
+This creates the executable at `dist/portainer-mcp`.
+
+3. **Install to your PATH (optional):**
+
+```bash
+# Move to a directory in your PATH
+sudo mv dist/portainer-mcp /usr/local/bin/
+
+# Or add dist to your PATH in ~/.bashrc or ~/.zshrc
+export PATH="$PATH:/path/to/portainer-mcp/dist"
+```
+
+#### Cross-Platform Builds
+
+Build for a specific platform and architecture:
+
+```bash
+# Build for Linux AMD64
+make PLATFORM=linux ARCH=amd64 build
+
+# Build for Linux ARM64
+make PLATFORM=linux ARCH=arm64 build
+
+# Build for macOS ARM64
+make PLATFORM=darwin ARCH=arm64 build
+
+# Build for Windows AMD64
+make PLATFORM=windows ARCH=amd64 build
+```
+
+#### Other Make Commands
+
+```bash
+# Run unit tests
+make test
+
+# Run integration tests (requires Docker)
+make test-integration
+
+# Run all tests
+make test-all
+
+# Clean build artifacts
+make clean
+
+# Run the MCP inspector for debugging
+make inspector
+```
+
+## Usage
+
+### Configuration Overview
+
+Before configuring your AI assistant, you'll need:
+- **Server URL**: Your Portainer instance URL (e.g., `https://portainer.example.com:9443` or `http://localhost:9000` for local instances)
+- **API Token**: A Portainer administrator API access token
+
+> [!NOTE]
+> By default, the tool looks for "tools.yaml" in the same directory as the binary. If the file does not exist, it will be created there with the default tool definitions. You may need to specify a custom path using `-tools` flag, particularly when using AI assistants that have restricted write permissions to the working directory.
+
+### Claude Desktop
+
+Edit your Claude Desktop configuration file:
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+Add the following configuration:
+
+```json
 {
     "mcpServers": {
         "portainer": {
             "command": "/path/to/portainer-mcp",
             "args": [
                 "-server",
-                "[IP]:[PORT]",
+                "https://your-portainer-server:9443",
                 "-token",
-                "[TOKEN]",
+                "your-api-token-here",
                 "-tools",
                 "/tmp/tools.yaml"
             ]
@@ -87,27 +178,124 @@ With Claude Desktop, configure it like so:
 }
 ```
 
-Replace `[IP]`, `[PORT]` and `[TOKEN]` with the IP, port and API access token associated with your Portainer instance.
+Replace `/path/to/portainer-mcp` with the actual path to your binary (e.g., `/usr/local/bin/portainer-mcp`).
 
-> [!NOTE]
-> By default, the tool looks for "tools.yaml" in the same directory as the binary. If the file does not exist, it will be created there with the default tool definitions. You may need to modify this path as described above, particularly when using AI assistants like Claude that have restricted write permissions to the working directory.
+### Claude Code
 
-## Disable Version Check
+You can configure Claude Code using either the CLI or by editing the configuration file directly.
 
-By default, the application validates that your Portainer server version matches the supported version and will fail to start if there's a mismatch. If you have a Portainer server version that doesn't have a corresponding Portainer MCP version available, you can disable this version check to attempt connection anyway.
+#### Using the CLI
 
-To disable the version check, add the `-disable-version-check` flag to your command arguments:
-
+```bash
+claude mcp add portainer \
+    --transport stdio \
+    --command "/path/to/portainer-mcp" \
+    -- \
+    -server "https://your-portainer-server:9443" \
+    -token "your-api-token-here" \
+    -tools "/tmp/tools.yaml"
 ```
+
+Verify the configuration:
+
+```bash
+claude mcp list
+```
+
+#### Using the Configuration File
+
+Edit `~/.claude.json` (or your project's `.claude.json`):
+
+```json
 {
     "mcpServers": {
         "portainer": {
             "command": "/path/to/portainer-mcp",
             "args": [
                 "-server",
-                "[IP]:[PORT]",
+                "https://your-portainer-server:9443",
                 "-token",
-                "[TOKEN]",
+                "your-api-token-here",
+                "-tools",
+                "/tmp/tools.yaml"
+            ]
+        }
+    }
+}
+```
+
+### OpenCode
+
+Edit your `opencode.json` configuration file (in your project directory or home directory):
+
+```json
+{
+    "$schema": "https://opencode.ai/config.json",
+    "mcp": {
+        "portainer": {
+            "type": "local",
+            "command": [
+                "/path/to/portainer-mcp",
+                "-server",
+                "https://your-portainer-server:9443",
+                "-token",
+                "your-api-token-here",
+                "-tools",
+                "/tmp/tools.yaml"
+            ],
+            "enabled": true
+        }
+    }
+}
+```
+
+Alternatively, use the CLI:
+
+```bash
+opencode mcp add
+```
+
+Verify the configuration:
+
+```bash
+opencode mcp list
+```
+
+### Other MCP-Compatible Clients
+
+For other MCP-compatible clients, configure them to run the `portainer-mcp` binary with the following arguments:
+
+```
+portainer-mcp -server <URL> -token <TOKEN> [-tools <PATH>] [-read-only] [-disable-version-check]
+```
+
+**Required arguments:**
+- `-server <URL>` - Portainer server URL (e.g., `https://portainer.example.com:9443`)
+- `-token <TOKEN>` - Portainer API access token
+
+**Optional arguments:**
+- `-tools <PATH>` - Path to custom tools.yaml file
+- `-read-only` - Enable read-only mode
+- `-disable-version-check` - Skip Portainer version validation
+
+## Advanced Configuration
+
+### Disable Version Check
+
+By default, the application validates that your Portainer server version matches the supported version and will fail to start if there's a mismatch. If you have a Portainer server version that doesn't have a corresponding Portainer MCP version available, you can disable this version check to attempt connection anyway.
+
+To disable the version check, add the `-disable-version-check` flag to your command arguments:
+
+```json
+{
+    "mcpServers": {
+        "portainer": {
+            "command": "/path/to/portainer-mcp",
+            "args": [
+                "-server",
+                "https://your-portainer-server:9443",
+                "-token",
+                "your-api-token-here",
                 "-disable-version-check"
             ]
         }
@@ -128,22 +316,22 @@ This flag is useful when:
 - You're running a newer Portainer version that doesn't have MCP support yet
 - You're running an older Portainer version and want to try the tool anyway
 
-## Tool Customization
+### Tool Customization
 
 By default, the tool definitions are embedded in the binary. The application will create a tools file at the default location if one doesn't already exist.
 
 You can customize the tool definitions by specifying a custom tools file path using the `-tools` flag:
 
-```
+```json
 {
     "mcpServers": {
         "portainer": {
             "command": "/path/to/portainer-mcp",
             "args": [
                 "-server",
-                "[IP]:[PORT]",
+                "https://your-portainer-server:9443",
                 "-token",
-                "[TOKEN]",
+                "your-api-token-here",
                 "-tools",
                 "/path/to/custom/tools.yaml"
             ]
@@ -157,22 +345,22 @@ The default tools file is available for reference at `internal/tooldef/tools.yam
 > [!WARNING]
 > Do not change the tool names or parameter definitions (other than descriptions), as this will prevent the tools from being properly registered and functioning correctly.
 
-## Read-Only Mode
+### Read-Only Mode
 
 For security-conscious users, the application can be run in read-only mode. This mode ensures that only read operations are available, completely preventing any modifications to your Portainer resources.
 
 To enable read-only mode, add the `-read-only` flag to your command arguments:
 
-```
+```json
 {
     "mcpServers": {
         "portainer": {
             "command": "/path/to/portainer-mcp",
             "args": [
                 "-server",
-                "[IP]:[PORT]",
+                "https://your-portainer-server:9443",
                 "-token",
-                "[TOKEN]",
+                "your-api-token-here",
                 "-read-only"
             ]
         }
