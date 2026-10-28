@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/go-openapi/runtime"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
+	"github.com/moby/moby/api/types/container"
 	"github.com/portainer/client-api-go/v2/pkg/client"
 	"github.com/portainer/client-api-go/v2/pkg/client/auth"
 	"github.com/portainer/client-api-go/v2/pkg/client/users"
@@ -122,7 +122,7 @@ func NewPortainerContainer(ctx context.Context, opts ...PortainerContainerOption
 		return nil, fmt.Errorf("failed to get container host: %w", err)
 	}
 
-	mappedPort, err := cntr.MappedPort(ctx, nat.Port(defaultAPIPortTCP))
+	mappedPort, err := cntr.MappedPort(ctx, defaultAPIPortTCP)
 	if err != nil {
 		cntr.Terminate(ctx) // Clean up if we fail post-start
 		return nil, fmt.Errorf("failed to get mapped port: %w", err)
@@ -130,7 +130,7 @@ func NewPortainerContainer(ctx context.Context, opts ...PortainerContainerOption
 
 	pc := &PortainerContainer{
 		Container: cntr,
-		APIPort:   mappedPort,
+		APIPort:   nat.Port(mappedPort.String()),
 		APIHost:   host,
 	}
 
