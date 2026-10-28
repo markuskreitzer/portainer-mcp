@@ -3,11 +3,11 @@ module github.com/portainer/portainer-mcp
 go 1.27.0
 
 require (
-	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-connections v0.8.2
 	github.com/go-openapi/runtime v0.33.3
 	github.com/go-openapi/strfmt v0.27.4
 	github.com/mark3labs/mcp-go v1.4.0
+	github.com/moby/moby/api v1.56.1
 	github.com/portainer/client-api-go/v2 v2.31.2
 	github.com/rs/zerolog v1.35.1
 	github.com/stretchr/testify v1.12.1
@@ -67,7 +67,6 @@ require (
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/go-archive v0.3.3 // indirect
-	github.com/moby/moby/api v1.56.1 // indirect
 	github.com/moby/moby/client v0.6.2 // indirect
 	github.com/moby/patternmatcher v0.6.1 // indirect
 	github.com/moby/sys/sequential v0.7.0 // indirect
