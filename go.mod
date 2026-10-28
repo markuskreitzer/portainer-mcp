@@ -1,6 +1,6 @@
 module github.com/portainer/portainer-mcp
 
-go 1.27.0
+go 1.27.3
 
 require (
 	github.com/docker/go-connections v0.8.2
